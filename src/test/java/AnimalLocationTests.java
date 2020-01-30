@@ -1,64 +1,39 @@
-import model.Dogs;
-import model.Error;
-import model.FarmVerification;
-import model.Sheeps;
-import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
+import model.*;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.awt.Point;
 
-public class AnimalLocationTests {
+import static org.testng.Assert.assertEquals;
 
-    private Dogs dog = new Dogs();
-    private Sheeps sheep = new Sheeps();
+public class AnimalLocationTests extends BaseClass {
 
-    @AfterMethod
-    public void tearDownAfterMethod(){
-        dog.getDogLocation().setLocation(new Point(0,0));
-        sheep.getSheepLocation().setLocation(new Point(0,0));
+    @Test(dataProvider = "kindOfAnimals")
+    public void checkStartDogLocation(Animal animal) {
+        assertEquals(animal.getAnimalCoordinates(), new Point(0, 0));
+    }
+
+    @Test(dataProvider = "kindOfAnimals")
+    public void moveAnimal(Animal animal) {
+        animal.move(new Point(50, 50));
+        assertEquals(animal.getAnimalCoordinates(), new Point(50, 50));
     }
 
     @Test
-    public void checkStartDogLocation() {
-        Assert.assertEquals(dog.getDogLocation(), new Point(0, 0));
+    public void sheepIsOutOfTheFarm() {
+        try {
+            farm.moveAnimalAtTheFarm(new Sheep(), new Point(90, 90));
+        } catch (FarmException e) {
+            assertEquals(e.getMessage(), "The animal is located out of the farm");
+        }
     }
 
     @Test
-    public void checkStartSheepLocation() {
-        Assert.assertEquals(sheep.getSheepLocation(), new Point(0, 0));
-    }
-
-    @Test
-    public void moveDogLocation() {
-        dog.move(new Point(50,50));
-        Assert.assertEquals(dog.getDogLocation(), new Point(50, 50));
-    }
-
-    @Test
-    public void moveSheepLocation() {
-        sheep.move(new Point(20,20));
-        Assert.assertEquals(sheep.getSheepLocation(), new Point(20, 20));
-    }
-
-    @Test
-    public void sheepIsOutOfFarm() {
-        sheep.move(new Point(90,0));
-        Assert.assertFalse(FarmVerification.isAnimalInTheFarm(sheep.getSheepLocation()));
-        Assert.assertEquals(FarmVerification.errorMessage, Error.valueOf("OUT_OF_FARM"));
-    }
-
-    @Test
-    public void dogIsOutOfFarm() {
-        dog.move(new Point(90,0));
-        Assert.assertFalse(FarmVerification.isAnimalInTheFarm(dog.getDogLocation()));
-        Assert.assertEquals(FarmVerification.errorMessage, Error.valueOf("OUT_OF_FARM"));
-    }
-
-    @Test
-    public void dogIsInTheSheepsArea() {
-        dog.move(new Point(30,30));
-        Assert.assertTrue(FarmVerification.isDogInTheSheepsArea(dog.getDogLocation()));
-        Assert.assertEquals(FarmVerification.errorMessage, Error.valueOf("DOG_IS_IN_SHEEPS_AREA"));
+    public void dogIsInTheSheepArea() {
+        try {
+            farm.moveAnimalAtTheFarm(new Dog(), new Point(20, 20));
+        } catch (FarmException e) {
+            assertEquals(e.getMessage(), "The dog is in the sheep pen");
+        }
     }
 }
